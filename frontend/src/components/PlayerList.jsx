@@ -8,7 +8,7 @@ export default function PlayerList({ players }) {
       <ul className="list-disc ml-6">
         {players.map((p) => (
           <li key={p.id} style={{ color: p.color }}>
-            {p.name} [{Math.round(p.x)}, {Math.round(p.y)}]
+            {p.name} (Очки: {p.score}) [{Math.round(p.x)}, {Math.round(p.y)}]
           </li>
         ))}
       </ul>

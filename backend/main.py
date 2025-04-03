@@ -13,6 +13,7 @@ from config import API_PORT
 
 # ==============================
 # Инициализация FastAPI с lifespan обработчиком
+# ==============================
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     task = asyncio.create_task(game_loop())  # запускаем фоновую задачу
@@ -59,6 +60,7 @@ class Player:
         self.down_pressed = False
         self.left_pressed = False
         self.right_pressed = False
+        self.score = 0
 
 class GameState:
     def __init__(self):
@@ -138,10 +140,9 @@ class GameState:
             for p in self.players.values():
                 dist = math.hypot(p.x - self.star_x, p.y - self.star_y)
                 if dist < STAR_RADIUS:
-                    # Игрок p собрал звезду
+                    p.score += 1  # увеличиваем счётчик для игрока, собравшего звезду
                     self.star_x = random.uniform(50, FIELD_WIDTH - 50)
                     self.star_y = random.uniform(50, FIELD_HEIGHT - 50)
-                    # Можно увеличить счётчик игрока, если хотите вести счёт
                     break
 
     def snapshot(self):
@@ -153,7 +154,8 @@ class GameState:
                     "name": p.name,
                     "color": p.color,
                     "x": p.x,
-                    "y": p.y
+                    "y": p.y,
+                    "score": p.score
                 }
                 for p in self.players.values()
             ],
