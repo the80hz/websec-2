@@ -1,21 +1,22 @@
-// frontend/src/App.jsx
+// src/App.jsx
 import React, { useEffect, useState, useRef } from "react";
 import { v4 as uuidv4 } from "uuid";
+import UserForm from "./components/UserForm";
+import GameField from "./components/GameField";
+import PlayerList from "./components/PlayerList";
 
 export default function App() {
   const [playerId] = useState(() => uuidv4());
   const [userName, setUserName] = useState("");
-  const [color, setColor] = useState("#" + Math.floor(Math.random()*16777215).toString(16));
-
+  const [color, setColor] = useState("#" + Math.floor(Math.random() * 16777215).toString(16));
   const [ws, setWs] = useState(null);
   const [connected, setConnected] = useState(false);
-
   const [gameState, setGameState] = useState({
     players: [],
     star: { x: 0, y: 0 },
   });
 
-  // Локально храним текущие нажатые клавиши, чтобы не спамить
+  // Локально храним текущее состояние нажатых клавиш
   const keysRef = useRef({
     up: false,
     down: false,
@@ -23,8 +24,8 @@ export default function App() {
     right: false,
   });
 
+  // Обработчики нажатия и отпускания клавиш
   useEffect(() => {
-    // Навешиваем обработчики нажатия
     const handleKeyDown = (e) => {
       switch (e.code) {
         case "ArrowUp":
@@ -97,14 +98,13 @@ export default function App() {
 
     window.addEventListener("keydown", handleKeyDown);
     window.addEventListener("keyup", handleKeyUp);
-
     return () => {
       window.removeEventListener("keydown", handleKeyDown);
       window.removeEventListener("keyup", handleKeyUp);
     };
-  }, []);
+  }, [ws]);
 
-  // Функция для отправки актуального keyState на сервер
+  // Отправка состояния клавиш на сервер
   const sendKeyState = () => {
     if (ws) {
       ws.send(
@@ -119,12 +119,11 @@ export default function App() {
     }
   };
 
-  // Подключение к веб-сокету
+  // Подключение к WebSocket
   const connectWS = () => {
-    const socket = new WebSocket("ws://localhost:5000/ws");
+    const socket = new WebSocket("ws://localhost:8000/ws");
     socket.onopen = () => {
       setConnected(true);
-      // Отправляем join
       socket.send(
         JSON.stringify({
           type: "join",
@@ -149,86 +148,20 @@ export default function App() {
 
   return (
     <div className="flex flex-col items-center p-4">
-      {/* Простая «форма» для ввода имени и выбора цвета */}
-      <div className="mb-4 flex gap-2">
-        <input
-          type="text"
-          className="border px-2 py-1"
-          placeholder="Ваше имя"
-          value={userName}
-          onChange={(e) => setUserName(e.target.value)}
-        />
-        <input
-          type="color"
-          className="border"
-          value={color}
-          onChange={(e) => setColor(e.target.value)}
-        />
-        <button
-          onClick={connectWS}
-          className="bg-blue-500 text-white px-3 py-1 rounded"
-          disabled={connected}
-        >
-          {connected ? "Connected" : "Connect"}
-        </button>
-      </div>
-
-      {/* Игровое поле 800x600 */}
-      <div
-        className="relative bg-green-100 border border-gray-500"
-        style={{
-          width: "800px",
-          height: "600px",
-          overflow: "hidden",
-        }}
-      >
-        {/* Отображаем звезду */}
-        <div
-          className="absolute w-4 h-4 rounded-full bg-yellow-300 border border-yellow-500"
-          style={{
-            left: gameState.star.x + "px",
-            top: gameState.star.y + "px",
-            transform: "translate(-50%, -50%)",
-          }}
-        ></div>
-
-        {/* Отображаем всех игроков */}
-        {gameState.players.map((player) => (
-          <div
-            key={player.id}
-            className="absolute w-6 h-6 rounded-full border-2"
-            style={{
-              backgroundColor: player.color,
-              left: player.x + "px",
-              top: player.y + "px",
-              transform: "translate(-50%, -50%)",
-              borderColor: "#555",
-            }}
-          >
-            <div className="text-xs text-white text-center leading-6 font-bold">
-              {player.name.substring(0, 2)}
-            </div>
-          </div>
-        ))}
-      </div>
-
-      {/* Дополнительная информация/подсказка */}
+      <UserForm
+        userName={userName}
+        setUserName={setUserName}
+        color={color}
+        setColor={setColor}
+        connectWS={connectWS}
+        connected={connected}
+      />
+      <GameField gameState={gameState} />
       <div className="mt-4 text-gray-600">
         <p>Управление: Стрелки или WASD. Собирайте звёздочки!</p>
         <p>Игроков может быть до 10 одновременно.</p>
       </div>
-
-      {/* Выведем текущий список игроков */}
-      <div className="mt-4 w-full max-w-md">
-        <h2 className="font-bold text-lg mb-2">Список игроков:</h2>
-        <ul className="list-disc ml-6">
-          {gameState.players.map((p) => (
-            <li key={p.id} style={{ color: p.color }}>
-              {p.name} [{Math.round(p.x)}, {Math.round(p.y)}]
-            </li>
-          ))}
-        </ul>
-      </div>
+      <PlayerList players={gameState.players} />
     </div>
   );
 }
