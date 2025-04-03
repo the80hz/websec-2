@@ -69,10 +69,13 @@ class GameState:
         self.star_y = random.uniform(50, FIELD_HEIGHT - 50)
         self.lock = asyncio.Lock()
 
-    async def add_player(self, player_id: str, name: str, color: str):
+    async def add_player(self, player_id: str, name: str, color: str) -> bool:
         async with self.lock:
+            if len(self.players) >= 10:
+                return False
             if player_id not in self.players:
                 self.players[player_id] = Player(player_id, name, color)
+            return True
 
     async def remove_player(self, player_id: str):
         async with self.lock:
@@ -206,7 +209,13 @@ async def game_endpoint(websocket: WebSocket):
                 player_id = data["playerId"]
                 name = data.get("name", "Anon")
                 color = data.get("color", "#000")
-                await game_state.add_player(player_id, name, color)
+                success = await game_state.add_player(player_id, name, color)
+                if not success:
+                    await websocket.send_json({
+                        "type": "error",
+                        "payload": {"message": "Максимальное число пользователей достигнуто"}
+                    })
+                    continue  # либо break, чтобы разорвать соединение
 
             elif msg_type == "keyState":
                 # Обновляем состояние нажатых клавиш
