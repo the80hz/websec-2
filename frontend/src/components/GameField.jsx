@@ -1,19 +1,14 @@
-// src/components/GameField.jsx
 import React from 'react';
 
 export default function GameField({ gameState }) {
   return (
     <div
-      className="relative bg-green-100 border border-gray-500"
-      style={{
-        width: "800px",
-        height: "600px",
-        overflow: "hidden",
-      }}
+      className="relative bg-gradient-to-br from-green-200 to-green-100 border-2 border-gray-400 rounded-lg shadow-lg"
+      style={{ width: "800px", height: "600px", overflow: "hidden" }}
     >
-      {/* Отображаем звезду */}
+      {/* Звезда */}
       <div
-        className="absolute w-4 h-4 rounded-full bg-yellow-300 border border-yellow-500"
+        className="absolute w-6 h-6 rounded-full bg-yellow-400 border-2 border-yellow-600"
         style={{
           left: gameState.star.x + "px",
           top: gameState.star.y + "px",
@@ -21,11 +16,11 @@ export default function GameField({ gameState }) {
         }}
       ></div>
 
-      {/* Отображаем всех игроков */}
+      {/* Игроки */}
       {gameState.players.map((player) => (
         <div
           key={player.id}
-          className="absolute w-6 h-6 rounded-full border-2"
+          className="absolute w-8 h-8 rounded-full border-2 flex items-center justify-center"
           style={{
             backgroundColor: player.color,
             left: player.x + "px",
@@ -34,9 +29,9 @@ export default function GameField({ gameState }) {
             borderColor: "#555",
           }}
         >
-          <div className="text-xs text-white text-center leading-6 font-bold">
+          <span className="text-xs text-white font-semibold">
             {player.name.substring(0, 2)}
-          </div>
+          </span>
         </div>
       ))}
     </div>

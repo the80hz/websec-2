@@ -1,4 +1,3 @@
-// src/App.jsx
 import React, { useEffect, useState, useRef } from "react";
 import { v4 as uuidv4 } from "uuid";
 import UserForm from "./components/UserForm";
@@ -24,7 +23,6 @@ export default function App() {
     right: false,
   });
 
-  // Обработчики нажатия и отпускания клавиш
   useEffect(() => {
     const handleKeyDown = (e) => {
       switch (e.code) {
@@ -104,7 +102,6 @@ export default function App() {
     };
   }, [ws]);
 
-  // Отправка состояния клавиш на сервер
   const sendKeyState = () => {
     if (ws) {
       ws.send(
@@ -119,7 +116,6 @@ export default function App() {
     }
   };
 
-  // Подключение к WebSocket
   const connectWS = () => {
     const socket = new WebSocket("ws://localhost:8000/ws");
     socket.onopen = () => {
@@ -147,7 +143,11 @@ export default function App() {
   };
 
   return (
-    <div className="flex flex-col items-center p-4">
+    <div className="min-h-screen bg-gray-50 flex flex-col items-center py-6">
+      <header className="mb-6 text-center">
+        <h1 className="text-3xl font-bold text-gray-800">Гонки за звёздочками</h1>
+        <p className="text-gray-600">Управляйте машинкой и собирайте звёзды!</p>
+      </header>
       <UserForm
         userName={userName}
         setUserName={setUserName}
@@ -157,9 +157,9 @@ export default function App() {
         connected={connected}
       />
       <GameField gameState={gameState} />
-      <div className="mt-4 text-gray-600">
-        <p>Управление: Стрелки или WASD. Собирайте звёздочки!</p>
-        <p>Игроков может быть до 10 одновременно.</p>
+      <div className="mt-4 text-gray-600 text-center">
+        <p>Управление: Стрелки или WASD.</p>
+        <p>До 10 игроков одновременно.</p>
       </div>
       <PlayerList players={gameState.players} />
     </div>
