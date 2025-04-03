@@ -7,10 +7,19 @@ import time
 from typing import List
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
+from contextlib import asynccontextmanager  # добавлено
 
 from config import API_PORT
 
-app = FastAPI()
+# ==============================
+# Инициализация FastAPI с lifespan обработчиком
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    task = asyncio.create_task(game_loop())  # запускаем фоновую задачу
+    yield
+    task.cancel()
+
+app = FastAPI(lifespan=lifespan)
 
 # ==============================
 # CORS middleware
@@ -225,11 +234,6 @@ async def game_loop():
         # Ждём до следующего тика
         elapsed = time.time() - start_time
         await asyncio.sleep(max(0, TICK_RATE - elapsed))
-
-@app.on_event("startup")
-async def on_startup():
-    # Стартуем корутину фонового игрового цикла
-    asyncio.create_task(game_loop())
 
 if __name__ == "__main__":
     uvicorn.run("main:app", host="0.0.0.0", port=API_PORT, reload=True)
